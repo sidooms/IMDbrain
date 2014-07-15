@@ -3,7 +3,8 @@
 
   "name": "IMDbrain",
   "description": "Customizable movie recommendations based on your IMDb ratings.",
-  "version": "xxx",
+  "version": "1.2.3",
+  "homepage_url": "http://www.imdbrain.com",
    "content_scripts": [
       {
         "matches": ["*://www.imdb.com/*"],
@@ -14,7 +15,7 @@
            "48": "img/logo_IMDbrain_square_cartoon_128.png",
           "128": "img/logo_IMDbrain_square_cartoon_128.png" },
   "permissions": [
-    "__your_brain_api_server_here__",
+    "http://api.imdbrain.com/",
     "storage",
     "tabs"
   ],
