@@ -136,6 +136,7 @@ function brain_log_more_click(next){
 }
 
 function brain_log_open_imdb_click(movie_imdb_id){
+    //console.log('brain_log_open_imdb_click called...');
     chrome.storage.sync.get(['imdbid','imdbusername'], function (result) {
         if(typeof result.imdbid === 'undefined'){
             
@@ -245,7 +246,7 @@ function generate_html_from_movies(movies, next, resultdiv){
                 Add more recs button  
             */
             //add more recs div, + button
-            html += '<button type="button" class="btn btn-default btn-block more-button" id="button-more-recs-'+next+'">More...</button><div id="div-more-recs-'+next+'"></div>';        
+            html += '<button type="button" class="btn btn-primary btn-block more-button" id="button-more-recs-'+next+'">Load more...</button><div id="div-more-recs-'+next+'"></div>';        
             $("#" + resultdiv).html(html);
             //action for button
             $("#button-more-recs-" +next).click(function() {
@@ -260,6 +261,16 @@ function generate_html_from_movies(movies, next, resultdiv){
     }
 }
 
+function make_shorter(text, maxlength){
+    if (text.length > maxlength){
+        var sbstring = text.substring(0, maxlength-3);
+        return sbstring + '...';
+    }else{
+        return text;
+    }
+    
+}
+
 function search_omdb_data(movie_imdb_id){
      $.ajax({
         url: "http://www.omdbapi.com/?i=" + movie_imdb_id,
@@ -269,8 +280,10 @@ function search_omdb_data(movie_imdb_id){
       {
          var notfoundstring = '(No moviedata found for id: ' + movie_imdb_id +  '.)'
       }else{
-          $("#movie_title_" + movie_imdb_id).html(movie.Title + ' (' + movie.Year + ')');
-          $("#movie_hide_link_" + movie_imdb_id).html('<a id="movie_hide_link_a_'+movie_imdb_id+'" class="text-right"  href="#" title="Already seen it? Hate it? Want to hide it? Click and this movie will trouble you no more!">Hide</a>' );
+          //short and long movie title
+          $("#movie_title_shorter_" + movie_imdb_id).html(make_shorter(movie.Title + ' (' + movie.Year + ')', 35));
+          $(".movie_title_" + movie_imdb_id).html(movie.Title + ' (' + movie.Year + ')');
+          $("#movie_hide_link_" + movie_imdb_id).html('<a id="movie_hide_link_a_'+movie_imdb_id+'" class="text-right"  href="#" title="Already seen it? Hate it? Want to hide it? Click and this movie will trouble you no more!">Hide movie</a>' );
           $("#movie_imdb_link_" + movie_imdb_id).html('<a title="Open the IMDb page in a new tab so you can rate the movie or add it to your watchlist. The brain grows smarter with every rating!" id="movie_imdb_link_a_'+movie_imdb_id+'" class="text-right" target="_blank" href="http://www.imdb.com/title/' + movie.imdbID + '">Open IMDb</a>' );
           $("#movie_imdbrating_" + movie_imdb_id).html(movie.imdbRating + ' (' + movie.imdbVotes + ' votes)' );
           $("#movie_director_" + movie_imdb_id).text(movie.Director);
@@ -285,44 +298,30 @@ function search_omdb_data(movie_imdb_id){
                          $("#div_recommendations_status").html('<strong>Whoopsy.</strong> There seems to be a problem contacting the brain. Please try again later...');
                     }
           }).done(function ( data ) {
-            $("#movie_poster_" + movie_imdb_id).attr('src', data);
+            $(".movie_poster_" + movie_imdb_id).attr('src', data);
           });
-          //not interested in clicks on popular recs
-          if (!is_popular){
-               $( "#movie_imdb_link_a_" +  movie_imdb_id).click(function() {
-                    brain_log_open_imdb_click(movie_imdb_id);
-                    return true;
-                }); 
-              $( "#movie_hide_link_a_" +  movie_imdb_id).click(function() {
-                    $("#movie-panel-" + movie_imdb_id).fadeOut();
-                    brain_log_hide_click(movie_imdb_id);
-                    return false;
-                }); 
-              
-              $("#movie_hide_link_a_" +  movie_imdb_id).tooltip({placement:'top', container:'body'});
-          }else{
-            //if popular recs are shown hide the hide link
-              $("#movie_hide_link_" + movie_imdb_id).hide();
-          }
-          
-          $("#movie_imdb_link_a_" +  movie_imdb_id).tooltip({placement:'top', container:'body'});
       }
     });
 }
 
 function generate_html_from_movie_id(movie_imdb_id){
     var html = '';
-    html += '<script>$(function() { \
-                search_omdb_data("'+movie_imdb_id+'");\
-            });</script>\
-    <div class="panel panel-default" id="movie-panel-'+movie_imdb_id+'">\
-          <div class="panel-heading">\
-            <span class="h3 panel-title" id="movie_title_' + movie_imdb_id + '">Loading...</span><span class="imdb-link-right" id="movie_imdb_link_' + movie_imdb_id + '"></span> <span class="imdb-link-right" id="movie_hide_link_' + movie_imdb_id + '"></span>\
-          </div> \
+    html += '\
+             <span class="movie-thumbnail popover-dismiss" id="movie_thumbnail_'+movie_imdb_id+'" data-toggle="popover" data-content=""> \
+            <img class="img-thumbnail movie-thumbnail-poster movie_poster_'+movie_imdb_id+'" alt="Movie poster" id="" src="'+brain_img_not_found_url+'"></div> \
+            <strong><p class="movie-thumbnail-title" id="movie_title_shorter_' + movie_imdb_id + '">Loading...</p></strong> \
+        </span> \
+            <span id="movie_thumbnail_title_panel_'+movie_imdb_id+'" style="display:none">\
+            <strong><span class="movie_title_' + movie_imdb_id + '">Loading...</span></strong><button type="button" id="movie_thumbnail_popover_close_' + movie_imdb_id + '" class="close imdb-link-right movie-thumbnail-popover-close">&times;</button><span class="imdb-link-right" id="movie_imdb_link_' + movie_imdb_id + '"></span> <span class="imdb-link-right" id="movie_hide_link_' + movie_imdb_id + '"></span>\
+            </span>\
+     <div class="panel panel-default movie-thumbnail-popover" id="movie-panel-'+movie_imdb_id+'">\
+          <!-- <div class="panel-heading">\
+            <span class="h3 panel-title movie_title_' + movie_imdb_id + '" id="">Loading...</span><span class="imdb-link-right" id="movie_imdb_link_' + movie_imdb_id + '"></span> <span class="imdb-link-right" id="movie_hide_link_' + movie_imdb_id + '"></span>\
+          </div> --> \
           <div class="panel-body imdbrain-movie-content-panel"> \
                 <div class="row"> \
-                    <div class="col-md-2"><img class="img-responsive img-rounded" alt="Responsive image" id="movie_poster_'+movie_imdb_id+'" src="'+brain_img_not_found_url+'" class="img-polaroid poster"> \</div> \
-                    <div class="col-md-10"> \
+                    <!-- <div class="col-md-2"><img class="img-responsive img-rounded movie_poster_'+movie_imdb_id+'" alt="Responsive image" id="" src="'+brain_img_not_found_url+'" class="img-polaroid poster"> \</div> -->\
+                    <div class="col-md-12"> \
                          <div class="row"> \
                                 <div class="col-md-2"><strong>IMDb:</strong></div>\
                                 <div class="col-md-10"><span id="movie_imdbrating_'+movie_imdb_id+'"></span></div> \
@@ -350,7 +349,58 @@ function generate_html_from_movie_id(movie_imdb_id){
                     </div> \
                 </div> \
           </div>\
-        </div>';
+        </div> \
+        <script>$(function() { \
+                search_omdb_data("'+movie_imdb_id+'");\
+                $("#movie_thumbnail_'+movie_imdb_id+'").popover({\
+                   trigger: "click",\
+                   content: function() { \
+                    return $("#movie-panel-'+movie_imdb_id+'").html(); \
+                    }, \
+                   title: function() { \
+                    return $("#movie_thumbnail_title_panel_'+movie_imdb_id+'").html(); \
+                    }, \
+                   html : true, \
+                   placement: function (context, source) { \
+                        var position = $(source).position(); \
+                        if (position.left > 415) { \
+                            return "left";\
+                        }\
+                        if (position.left < 415) {\
+                            return "right";\
+                        }\
+                        if (position.top < 110){\
+                            return "bottom";\
+                        }\
+                        return "top";\
+                    } \
+                });\
+                 $("#movie_thumbnail_'+movie_imdb_id+'").click(function() { \
+                        $("#movie_hide_link_a_'+movie_imdb_id+'").tooltip({placement:"top", container:"body"}); \
+                        $("#movie_imdb_link_a_'+movie_imdb_id+'").tooltip({placement:"top", container:"body"}); \
+                        if (!is_popular){ \
+                           $( "#movie_imdb_link_a_'+movie_imdb_id+'").click(function() { \
+                                brain_log_open_imdb_click("'+movie_imdb_id+'"); \
+                                return true;\
+                            }); \
+                          $( "#movie_hide_link_a_'+movie_imdb_id+'").click(function() {\
+                                $("#movie_thumbnail_'+movie_imdb_id+'").popover("hide"); \
+                                $("#movie_thumbnail_'+movie_imdb_id+'").fadeOut();\
+                                brain_log_hide_click("'+movie_imdb_id+'");\
+                                return false;\
+                            }); \
+                      }else{\
+                          $("#movie_hide_link_'+movie_imdb_id+'" ).hide();\
+                      }\
+                      $( "#movie_thumbnail_popover_close_'+movie_imdb_id+'").click(function() {\
+                        $("#movie_thumbnail_'+movie_imdb_id+'").popover("hide"); \
+                      }); \
+                }); \
+            });</script>';
+            
+       
+        
+        
     return html;
 }
 

@@ -3,6 +3,48 @@ body {
     background-repeat:repeat-x;
 }
 
+.popover{
+    min-width:600px;
+    /*height:250px;    */
+}
+
+
+
+
+.movie-thumbnail{
+    width:150px;
+    height:260px;
+    margin-top: 0px;
+    margin-bottom: 2px;
+    margin-right: 2px;
+    margin-left: 2px;
+    display:inline-block;
+   /*border:1px solid red;*/
+   float:left;
+   cursor: pointer;
+}
+
+.movie-thumbnail-popover {
+    display:none;
+}
+
+.movie-thumbnail-popover-close {
+    margin-top:-4px;
+}
+
+.movie-thumbnail-poster{
+    width:140px;
+    height:200px;
+    display:block;
+    margin: 2px auto;
+}
+
+.movie-thumbnail-title{
+    /*display:inline;
+    /*margin:10px;*/
+    margin-left: 10px;
+}
+
 .panel-black {
   border-color: #000;
 }
@@ -34,6 +76,7 @@ body {
     float:right;   
     margin-left: 10px;
 }
+
 .hidden{
     display:none;
 }
